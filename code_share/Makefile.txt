@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -02
+CXXFLAGS := -std=c++17 -Wall -Wextra -O2
 LDFLAGS :=
 
 SRC_DIR := src
@@ -13,7 +13,7 @@ TARGET := http_server
 
 TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(TEST_SRCS))
-TEST_TARGET := http_server
+TEST_TARGET := test_http_server
 
 all: $(TARGET)
 

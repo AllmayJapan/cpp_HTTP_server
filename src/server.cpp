@@ -64,14 +64,39 @@ void Server::run() {
 
         //Method-by-Method Processing
         if (request.get_method() == "GET") {
-            std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, GET!";
-            send(new_socket, response.c_str(), response.size(), 0);
+	    std::string body = "Hello, GET!";
+            std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(body.size()) + "\r\n\r\n" + body;
+
+	    ssize_t total_sent = 0;
+	    ssize_t bytes_to_send = response.size();
+
+	    while (total_sent < bytes_to_send) {
+		    ssize_t sent = send(new_socket, response.c_str() + total_sent, bytes_to_send - total_sent, 0);
+		    if (sent < 0) {
+			    perror("send failed");
+			    break;
+		    }
+		    total_sent += sent;
+	    }
+	    if (total_sent == bytes_to_send) {
+		    std::cout << "Response fully sent (" << total_sent << "bytes)." << std::endl;
+	    } else {
+		    std::cerr << "Response partially sent (" << total_sent << "/" << bytes_to_send << "bytes)." << std::endl;
+	    }
         } else if (request.get_method() == "POST") {
             std::string response_body = "Received: " + request.get_body();
             std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(response_body.size()) + "\r\n\r\n" + response_body;
             send(new_socket, response.c_str(), response.size(), 0);
         } else {
+	    std::cerr << "Unsupported method: " << request.get_method() << std::endl;
+
             std::string response = "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: 0\r\n\r\n";
+	    ssize_t sent = send(new_socket, response.c_str(), response.size(), 0);
+	    if (sent < 0) {
+		    perror("send failed");
+	    } else {
+		    std::cout << "405 Method Not Allowed response sent." << std::endl;
+	    }
             send(new_socket, response.c_str(), response.size(), 0);
         }
 

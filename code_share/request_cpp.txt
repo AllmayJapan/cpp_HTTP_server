@@ -1,29 +1,44 @@
-#ifndef REQUEST_HPP
-#define REQUEST_HPP
+#include "request.hpp"
+#include <sstream>
+#include <iostream>
 
-#include <string>
-#include <unordered_map>
+Request::Request(const std::string& raw_request) : raw_request(raw_request) {}
 
-class Repuest {
-    public:
-        //Constructor
-        Repuest(const std::string& raw_request);
+void Request::parse() {
+    std::istringstream stream(raw_request);
+    std::string line;
 
-        //Parse method
-        void parse();
+    //Analyze stringline
+    std::getline(stream, line);
+    std::istringstream request_line(line);
+    request_line >> method >> uri >> http_version;
 
-        //Get method, URI, body
-        std::string get_method() const;
-        std::string get_uri() const;
-        std::string get_body() const;
-        
-    private:
-        std::string raw_request;
-        std::string method;
-        std::string uri;
-        std::string http_version;
-        std::unordered_map<std::string, std::string> headers;
-        std::string body;
-};
+    //Analyze header
+    while (std::getline(stream, line) && line != "\r") {
+        auto colon_pos = line.find(':');
+        if (colon_pos != std::string::npos) {
+            std::string key = line.substr(0, colon_pos);
+            std::string value = line.substr(colon_pos + 1);
+            headers[key] = value;
+        }
+    }
 
-#endif // REQUEST_HPP
+    //Analyze body
+    if (method == "POST" && headers.find("Content-Length") != headers.end()) {
+        int content_length = std::stoi(headers["Content-Length"]);
+        body.resize(content_length);
+        stream.read(&body[0], content_length);
+    }
+}
+
+std::string Request::get_method() const {
+    return method;
+}
+
+std::string Request::get_uri() const {
+    return uri;
+}
+
+std::string Request::get_body() const {
+    return body;
+}

@@ -1,1 +1,6 @@
-make: Nothing to be done for 'all'.
+g++ -std=c++17 -Wall -Wextra -O2 -Iinclude -c src/server.cpp -o build/server.o
+src/server.cpp: In function ‘void serve_static_file(const std::string&, int)’:
+src/server.cpp:48:27: error: aggregate ‘std::stringstream buffer’ has incomplete type and cannot be defined
+   48 |         std::stringstream buffer;
+      |                           ^~~~~~
+make: *** [Makefile:25: build/server.o] エラー 1
